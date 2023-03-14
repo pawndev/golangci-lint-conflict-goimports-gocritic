@@ -1,0 +1,97 @@
+run:
+  concurrency: 4
+  # timeout for analysis, e.g. 30s, 5m, default is 1m
+  timeout: 5m
+
+
+  # exit code when at least one issue was found, default is 1
+  issues-exit-code: 0 # A enlever quand toutes les règles seront validé
+
+  # include test files or not, default is true
+  tests: false
+
+  skip-dirs:
+    - build/...
+    - vendor/...
+
+  # by default isn't set. If set we pass it to "go list -mod={option}". From "go help modules":
+  # If invoked with -mod=readonly, the go command is disallowed from the implicit
+  # automatic updating of go.mod described above. Instead, it fails when any changes
+  # to go.mod are needed. This setting is most useful to check that go.mod does
+  # not need updates, such as in a continuous integration and testing system.
+  # If invoked with -mod=vendor, the go command assumes that the vendor
+  # directory holds the correct copies of dependencies and ignores
+  # the dependency descriptions in go.mod.
+  modules-download-mode: vendor
+
+
+# all available settings of specific linters
+linters-settings:
+  gocritic:
+    # Settings passed to gocritic.
+    # The settings key is the name of a supported gocritic checker.
+    # The list of supported checkers can be find in https://go-critic.github.io/overview.
+#    disabled-checks:
+#      - commentFormatting
+    settings:
+      captLocal:
+        # Whether to restrict checker to params only.
+        # Default: true
+        paramsOnly: false
+      underef:
+        # Whether to skip (*x).method() calls where x is a pointer receiver.
+        # Default: true
+        skipRecvDeref: false
+
+
+linters:
+  enable:
+    - gocritic # provides diagnostics that check for bugs, performance and style issues
+    - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
+  enable-all: false
+  disable-all: true
+  fast: false
+
+
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        #        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - goconst
+        - gochecknoglobals
+        - gocritic
+        - lll
+        - noctx
+        - wrapcheck
+    - path: testsutils/
+      linters:
+        #        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - gochecknoglobals
+        - gocritic
+        - lll
+        - wrapcheck
+    - path: internal/version/
+      linters:
+        - gochecknoglobals
+    - source: "//noinspection"
+      linters: [ gocritic ]
+      # Exclude `lll` issues for long lines with `go:generate`.
+    - source: "^//go:generate "
+      linters:
+        - lll
+    - source: "(noinspection|TODO)"
+      linters: [ godot, lll ]
+
+  exclude-use-default: false
+  new-from-rev: ""
